@@ -48,12 +48,12 @@ enum CreateCommands {
 
 #[derive(Subcommand)]
 enum DropCommands {
-    /// Create a new table
+    /// Drop a new table
     Table {
         /// Name of the table
         name: String,
     },
-    /// Create a new column in a table
+    /// Drop a new column in a table
     Column {
         /// Name of the table
         #[arg(long)]
