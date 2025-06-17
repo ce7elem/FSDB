@@ -1,6 +1,6 @@
 #!/bin/bash
 set -xe
-DBFS=${DBFS:-"/tmp/dbfs"}
+FSDB=${FSDB:-"/tmp/fsdb"}
 
 if [ -z $1 ]; then
   echo "Usage: $0 <TABLE NAME> ( <COL_NAME_1> <COL_NAME_2> ... )"
@@ -9,5 +9,5 @@ if [ -z $1 ]; then
   exit -1;
 fi
 
-echo "[log] mkdir $DBFS/$1"
-mkdir "$DBFS/$1"
+echo "[log] mkdir $FSDB/$1"
+mkdir "$FSDB/$1"
