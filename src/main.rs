@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use clap::{Parser, Subcommand};
+use clap::{Args, Parser, Subcommand};
 
 #[derive(Parser)]
 struct Cli {
@@ -20,6 +20,8 @@ enum Commands {
         #[command(subcommand)]
         command: DropCommands,
     },
+
+    Select(SelectCommands),
 }
 
 #[derive(Subcommand)]
@@ -64,6 +66,16 @@ enum DropCommands {
     },
 }
 
+#[derive(Debug, Args)]
+struct SelectCommands {
+    /// eg. user.name
+    #[arg(long = "column")]
+    columns: Vec<String>,
+    /// eg. user.name == "naruto"
+    #[arg(long = "filter")]
+    filters: Vec<String>,
+}
+
 fn main() {
     let cli = Cli::parse();
 
@@ -93,8 +105,7 @@ fn main() {
                             );
                         }
                     }
-                    "string" => println!("echo 'string' > {table}/{name}/.type"),
-                    _ => panic!("Type not supported"),
+                    coltype => println!("echo {coltype} > {table}/.{name}"),
                 }
             }
         },
@@ -107,5 +118,45 @@ fn main() {
                 println!("rm -rf {table}/{name}");
             }
         },
+
+        Commands::Select(SelectCommands { filters, columns }) => {
+            if filters.len() > 1 {
+                unimplemented!("We support only one filter for now");
+            }
+
+            let rows = if filters.is_empty() {
+                vec!["*"]
+            } else {
+                let filtered_rows = vec![];
+
+                for filter in filters {
+                    let [ressource, value] = filter.split("=").collect::<Vec<_>>()[..] else {
+                        unimplemented!(
+                            "Only equality is supported. Expected <table>.<colname> = <match>"
+                        );
+                    };
+                    let [table, column] = ressource.split(".").collect::<Vec<_>>()[..] else {
+                        panic!("Expected <table>.<colname>");
+                    };
+
+                    println!(
+                        "grep -rI {value} `find tmp/ -type f -wholename '*/{table}/*/{column}'`"
+                    );
+                    // push restult into filtered_rows
+                }
+
+                filtered_rows
+            };
+
+            for ressource in columns {
+                let [table, column] = ressource.split(".").collect::<Vec<_>>()[..] else {
+                    panic!("Expected <table>.<colname>");
+                };
+                println!(
+                    "cat {table}/{{{rows_ids}}}/{column}",
+                    rows_ids = rows.join(",")
+                );
+            }
+        }
     }
 }
